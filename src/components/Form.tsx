@@ -24,12 +24,16 @@ const Form: React.FC<FormProps> = ({ handleSubmit, loading, error }) => {
         <button
           type="submit"
           disabled={loading}
-          className="btn btn-info sm:max-w-sm md:max-w-md lg:max-w-full"
+          className="btn btn-info mt-3 sm:max-w-sm md:max-w-md lg:max-w-full"
         >
           {loading ? "Loading..." : "Scrape Recipe"}
         </button>
       </form>
-      {error && <p className="text-error">{error}</p>}
+      {error && (
+        <p className="text-error mx-10 mt-4 sm:max-w-sm md:max-w-md lg:max-w-full">
+          {error}
+        </p>
+      )}
     </div>
   );
 };

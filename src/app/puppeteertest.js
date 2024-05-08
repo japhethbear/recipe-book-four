@@ -1,24 +1,13 @@
-import OpenAI from "openai";
 import "dotenv/config";
 import puppeteer from "puppeteer";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-interface Recipe {
-  title: string;
-  ingredients: string[];
-  instructions: string[];
-}
-
-const TARGET_URL =
-  "https://www.farmhouseonboone.com/our-favorite-sourdough-pancakes-recipe";
-
-async function scraper(url: string): Promise<string> {
+async function main() {
   const browser = await puppeteer.connect({
     browserWSEndpoint: `wss://${process.env.BRIGHT_DATA_AUTH}@brd.superproxy.io:9222`,
   });
+
+  const url =
+    "https://www.farmhouseonboone.com/our-favorite-sourdough-pancakes-recipe";
 
   const page = await browser.newPage();
 
@@ -36,7 +25,7 @@ async function scraper(url: string): Promise<string> {
   const html = await page.evaluate(() => {
     // Function to determine if an element contains recipe-like content
 
-    function isLikelyRecipeContainer(element: Element) {
+    function isLikelyRecipeContainer(element) {
       // Extract class names, IDs, and tag name of the element
       const classNames = element.classList;
       const id = element.id;
@@ -88,7 +77,7 @@ async function scraper(url: string): Promise<string> {
     }
 
     const recipeElements = document.querySelectorAll("div, section, article"); // Select potential recipe containers
-    const recipeContent: string[] = [];
+    const recipeContent = [];
 
     // Iterate over potential recipe containers
     recipeElements.forEach((element) => {
@@ -108,11 +97,9 @@ async function scraper(url: string): Promise<string> {
   // Close the browser
 
   await browser.close();
-
-  return html;
 }
 
-export default scraper;
+main();
 
 //   try {
 //     const response = await openai.chat.completions.create({

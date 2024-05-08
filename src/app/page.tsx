@@ -6,14 +6,13 @@ import TheBearEssentialsGraphic from "@/assets/TheBearEssentialsGraphic.png";
 import Form from "@/components/Form";
 import RecipeDisplay from "@/components/RecipeDisplay";
 import "dotenv/config";
-import scraper from "@/Services/ScraperService";
-import processHTML from "@/Services/OpenAIService";
 
 interface Recipe {
   title: string;
   ingredients: string[];
   instructions: string[];
 }
+
 const Home: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,12 +26,39 @@ const Home: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const html = await scraper(url);
-      const processedRecipe = await processHTML(html);
+      const scraperResponse = await fetch(
+        "http://localhost:3000/api/scraperservice",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url }),
+        }
+      );
+      if (!scraperResponse.ok) {
+        throw new Error("Failed to scrape the recipe. Please try again.");
+      }
+      const { html } = await scraperResponse.json();
+
+      const openaiResponse = await fetch(
+        "http://localhost:3000/api/openaiservice",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ html }),
+        }
+      );
+      if (!openaiResponse.ok) {
+        throw new Error("Failed to process the recipe. Please try again.");
+      }
+
+      const { processedRecipe } = await openaiResponse.json();
       setRecipe(processedRecipe);
-    } catch (error) {
-      setError("Failed to scrape the recipe. Please try again.");
-      console.log(error);
+    } catch (error: any) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -63,7 +89,6 @@ const Home: React.FC = () => {
       </div>
       {/* /* // Recipe Display Here // */}
       <RecipeDisplay recipe={recipe} />
-      <button className="btn btn-accent mx-10 mt-5">Print</button>
     </>
   );
 };
